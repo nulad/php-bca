@@ -473,6 +473,101 @@ class BcaHttp
     }
 
     /**
+     * Transfer dana kepada akun lain dengan jumlah nominal tertentu.
+     *
+     * @param string $oauth_token nilai token yang telah didapatkan setelah login
+     * @param int $amount nilai dana dalam RUPIAH yang akan ditransfer, Format: 13.2
+     * @param string $beneficiaryAccountNumber  BCA Account number to be credited (Destination)
+     * @param string $beneficiaryBankCode  Bank Code of account to be credited (destination)
+     * @param string $beneficiaryName  Account name to be credited (destination)
+     * @param string $beneficiaryCustType  1 = Personal 2 = Corporate 3 = Government
+     * @param string $beneficiaryCustResidence  1 = Resident 2 = Non Resident
+     * @param string $transferType LLG or RTG
+     * @param string $referenceID Sender's transaction reference ID
+     * @param string $remark1 Transfer remark for receiver
+     * @param string $remark2 ransfer remark for receiver
+     * @param string $sourceAccountNumber Source of Fund Account Number
+     * @param string $transactionID Transcation ID unique per day (using UTC+07 Time Zone). Format: Number
+     * @param string $corp_id nilai CorporateID yang telah diberikan oleh pihak BCA [Optional]
+     *
+     * @return \Unirest\Response
+     */
+    public function domesticTransfers(
+        $oauth_token,
+        $amount,
+        $sourceAccountNumber,
+        $beneficiaryAccountNumber,
+        $beneficiaryBankCode,
+        $beneficiaryCustResidence,
+        $beneficiaryCustType,
+        $beneficiaryName,
+        $referenceID,
+        $remark1,
+        $remark2,
+        $transactionID,
+        $transferType
+    ) {
+        $corp_id = $this->settings['corp_id'];
+        $apikey = $this->settings['api_key'];
+        $secret = $this->settings['secret_key'];
+        $uriSign = "POST:/banking/corporates/transfers/domestic";
+        $isoTime = self::generateIsoTime();
+        
+        $headers                    = array();
+        $headers['Accept']          = 'application/json';
+        $headers['Content-Type']    = 'application/json';
+        $headers['Authorization']   = "Bearer $oauth_token";
+        $headers['X-BCA-Key']       = $apikey;
+        $headers['X-BCA-Timestamp'] = $isoTime;
+
+        $request_path = "banking/corporates/transfers/domestic";
+        $domain       = $this->ddnDomain();
+        $full_url     = $domain . $request_path;
+
+        $bodyData                             = array();
+        $bodyData['BeneficiaryCustType']      = strtolower(str_replace(' ', '', $beneficiaryCustType));
+        $bodyData['BeneficiaryBankCode']      = str_replace(' ', '', $beneficiaryBankCode);
+        $bodyData['Amount']                   = $amount;
+        $bodyData['BeneficiaryName']          = str_replace(' ', '', $beneficiaryName);
+        $bodyData['TransferType']             = str_replace(' ', '', $transferType);
+        $bodyData['TransactionID']            = strtolower(str_replace(' ', '', $transactionID));
+        $bodyData['CurrencyCode']             = 'IDR';
+        $bodyData['SourceAccountNumber']      = strtolower(str_replace(' ', '', $sourceAccountNumber));
+        $bodyData['BeneficiaryAccountNumber'] = strtolower(str_replace(' ', '', $beneficiaryAccountNumber));
+        $bodyData['ReferenceID']              = strtolower(str_replace(' ', '', $referenceID));
+        $bodyData['Remark2']                  = strtolower(str_replace(' ', '', $remark2));
+        $bodyData['Remark1']                  = strtolower(str_replace(' ', '', $remark1));
+        $bodyData['BeneficiaryCustResidence'] = strtolower(str_replace(' ', '', $beneficiaryCustResidence));
+        $bodyData['TransactionDate']          = date('Y-m-d',strtotime('+0 days'));
+
+        // Harus disort agar mudah kalkulasi HMAC
+        ksort($bodyData);
+
+        $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, $bodyData);
+
+        $headers['X-BCA-Signature'] = $authSignature;
+        $headers['ChannelID'] = '95051';
+        $headers['CredentialID'] = str_replace(' ', '', $corp_id);
+
+        \Unirest\Request::curlOpts(array(
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSLVERSION => 6,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+        ));
+
+        // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
+        $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
+        $body     = \Unirest\Request\Body::form($encoderData);
+        $response = \Unirest\Request::post($full_url, $headers, $body);
+
+        echo "METHOD: GET\r\nURL:".$full_url."\r\nHEADERS: ";print_r($headers);print("\r\nBODY: ".print_r($body,true));
+        echo "RESPONSE:\r\n".json_encode($response, JSON_PRETTY_PRINT);
+        
+        return $response;
+    }
+
+    /**
      * Realtime deposit untuk produk BCA.
      *
      * @param string $oauth_token nilai token yang telah didapatkan setelah login
