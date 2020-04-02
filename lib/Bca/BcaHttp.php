@@ -560,9 +560,6 @@ class BcaHttp
         $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
         $body     = \Unirest\Request\Body::form($encoderData);
         $response = \Unirest\Request::post($full_url, $headers, $body);
-
-        echo "METHOD: GET\r\nURL:".$full_url."\r\nHEADERS: ";print_r($headers);print("\r\nBODY: ".print_r($body,true));
-        echo "RESPONSE:\r\n".json_encode($response, JSON_PRETTY_PRINT);
         
         return $response;
     }
