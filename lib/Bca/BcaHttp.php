@@ -283,19 +283,16 @@ class BcaHttp
     public function getAccountStatement($oauth_token, $sourceAccount, $startDate, $endDate)
     {
         $corp_id = $this->settings['corp_id'];
-
         $uriSign = "GET:/banking/v3/corporates/$corp_id/accounts/$sourceAccount/statements?EndDate=$endDate&StartDate=$startDate";
         $isoTime = self::generateIsoTime();
         $authSignature = self::generateSign($uriSign, $oauth_token, $this->settings['secret_key'], $isoTime, null);
-
         $headers = array();
         $headers['Accept'] = 'application/json';
         $headers['Content-Type'] = 'application/json';
         $headers['Authorization'] = "Bearer $oauth_token";
-        $headers['X-BCA-Key'] = $this->settings['secret_key'];
+        $headers['X-BCA-Key'] = $this->settings['api_key'];
         $headers['X-BCA-Timestamp'] = $isoTime;
         $headers['X-BCA-Signature'] = $authSignature;
-
         $request_path = "banking/v3/corporates/$corp_id/accounts/$sourceAccount/statements?EndDate=$endDate&StartDate=$startDate";
         $domain = $this->ddnDomain();
         $full_url = $domain . $request_path;
@@ -303,7 +300,6 @@ class BcaHttp
         $data = array('grant_type' => 'client_credentials');
         $body = Body::form($data);
         $response = Request::get($full_url, $headers, $body);
-
         return $response;
     }
 
@@ -417,7 +413,7 @@ class BcaHttp
      * @param string $remark2 ransfer remark for receiver
      * @param string $sourceAccountNumber Source of Fund Account Number
      * @param string $transactionID Transcation ID unique per day (using UTC+07 Time Zone). Format: Number
-     * @param string $corp_id nilai CorporateID yang telah diberikan oleh pihak BCA [Optional]
+     * @param string $currencyCode nilai MATA Uang [Optional]
      *
      * @return \Unirest\Response
      */
@@ -429,7 +425,8 @@ class BcaHttp
         $referenceID,
         $remark1,
         $remark2,
-        $transactionID
+        $transactionID,
+        $currencyCode = 'idr'
     )
     {
         $uriSign = "POST:/banking/corporates/transfers";
@@ -451,7 +448,7 @@ class BcaHttp
         $bodyData['Amount'] = $amount;
         $bodyData['BeneficiaryAccountNumber'] = strtolower(str_replace(' ', '', $beneficiaryAccountNumber));
         $bodyData['CorporateID'] = strtolower(str_replace(' ', '', $this->settings['corp_id']));
-        $bodyData['CurrencyCode'] = 'idr';
+        $bodyData['CurrencyCode'] = $currencyCode;
         $bodyData['ReferenceID'] = strtolower(str_replace(' ', '', $referenceID));
         $bodyData['Remark1'] = strtolower(str_replace(' ', '', $remark1));
         $bodyData['Remark2'] = strtolower(str_replace(' ', '', $remark2));
