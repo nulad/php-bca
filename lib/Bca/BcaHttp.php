@@ -12,7 +12,7 @@ use Unirest\Request\Body;
  * @author     Pribumi Technology
  * @license    MIT
  * @copyright  (c) 2017, Pribumi Technology
- * 
+ *
  * Modified and tested for use with GetPlus (Global Poin Indonesia, PT)
  * @modifiedby Firman Syamsudin
  */
@@ -64,7 +64,7 @@ class BcaHttp
         CURLOPT_SSL_VERIFYHOST => 0,
         CURLOPT_SSLVERSION => 6,
         CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_TIMEOUT => 60
+        CURLOPT_TIMEOUT => 60,
     );
 
     /**
@@ -91,8 +91,8 @@ class BcaHttp
             'scheme' => 'https',
             'timeout' => 60,
             'port' => 443,
-            'timezone' => 'Asia/Jakarta'
-        )
+            'timezone' => 'Asia/Jakarta',
+        ),
     );
 
     /**
@@ -321,8 +321,7 @@ class BcaHttp
         $longitude,
         $count = '10',
         $radius = '20'
-    )
-    {
+    ) {
         $params = array();
         $params['SearchBy'] = 'Distance';
         $params['Latitude'] = $latitude;
@@ -370,8 +369,7 @@ class BcaHttp
         $oauth_token,
         $rateType = 'eRate',
         $currency = 'USD'
-    )
-    {
+    ) {
         $params = array();
         $params['RateType'] = strtolower($rateType);
         $params['CurrencyCode'] = strtoupper($currency);
@@ -427,8 +425,7 @@ class BcaHttp
         $remark2,
         $transactionID,
         $currencyCode = 'idr'
-    )
-    {
+    ) {
         $uriSign = "POST:/banking/corporates/transfers";
 
         $isoTime = self::generateIsoTime();
@@ -512,33 +509,33 @@ class BcaHttp
         $secret = $this->settings['secret_key'];
         $uriSign = "POST:/banking/corporates/transfers/domestic";
         $isoTime = self::generateIsoTime();
-        
-        $headers                    = array();
-        $headers['Accept']          = 'application/json';
-        $headers['Content-Type']    = 'application/json';
-        $headers['Authorization']   = "Bearer $oauth_token";
-        $headers['X-BCA-Key']       = $apikey;
+
+        $headers = array();
+        $headers['Accept'] = 'application/json';
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
         $headers['X-BCA-Timestamp'] = $isoTime;
 
         $request_path = "banking/corporates/transfers/domestic";
-        $domain       = $this->ddnDomain();
-        $full_url     = $domain . $request_path;
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
 
-        $bodyData                             = array();
-        $bodyData['BeneficiaryCustType']      = strtolower(str_replace(' ', '', $beneficiaryCustType));
-        $bodyData['BeneficiaryBankCode']      = str_replace(' ', '', $beneficiaryBankCode);
-        $bodyData['Amount']                   = $amount;
-        $bodyData['BeneficiaryName']          = str_replace(' ', '', $beneficiaryName);
-        $bodyData['TransferType']             = str_replace(' ', '', $transferType);
-        $bodyData['TransactionID']            = strtolower(str_replace(' ', '', $transactionID));
-        $bodyData['CurrencyCode']             = 'IDR';
-        $bodyData['SourceAccountNumber']      = strtolower(str_replace(' ', '', $sourceAccountNumber));
+        $bodyData = array();
+        $bodyData['BeneficiaryCustType'] = strtolower(str_replace(' ', '', $beneficiaryCustType));
+        $bodyData['BeneficiaryBankCode'] = str_replace(' ', '', $beneficiaryBankCode);
+        $bodyData['Amount'] = $amount;
+        $bodyData['BeneficiaryName'] = str_replace(' ', '', $beneficiaryName);
+        $bodyData['TransferType'] = str_replace(' ', '', $transferType);
+        $bodyData['TransactionID'] = strtolower(str_replace(' ', '', $transactionID));
+        $bodyData['CurrencyCode'] = 'IDR';
+        $bodyData['SourceAccountNumber'] = strtolower(str_replace(' ', '', $sourceAccountNumber));
         $bodyData['BeneficiaryAccountNumber'] = strtolower(str_replace(' ', '', $beneficiaryAccountNumber));
-        $bodyData['ReferenceID']              = strtolower(str_replace(' ', '', $referenceID));
-        $bodyData['Remark2']                  = strtolower(str_replace(' ', '', $remark2));
-        $bodyData['Remark1']                  = strtolower(str_replace(' ', '', $remark1));
+        $bodyData['ReferenceID'] = strtolower(str_replace(' ', '', $referenceID));
+        $bodyData['Remark2'] = strtolower(str_replace(' ', '', $remark2));
+        $bodyData['Remark1'] = strtolower(str_replace(' ', '', $remark1));
         $bodyData['BeneficiaryCustResidence'] = strtolower(str_replace(' ', '', $beneficiaryCustResidence));
-        $bodyData['TransactionDate']          = date('Y-m-d',strtotime('+0 days'));
+        $bodyData['TransactionDate'] = date('Y-m-d', strtotime('+0 days'));
 
         // Harus disort agar mudah kalkulasi HMAC
         ksort($bodyData);
@@ -553,14 +550,68 @@ class BcaHttp
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
         ));
 
         // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
         $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
-        $body     = \Unirest\Request\Body::form($encoderData);
+        $body = \Unirest\Request\Body::form($encoderData);
         $response = \Unirest\Request::post($full_url, $headers, $body);
-        
+
+        return $response;
+    }
+
+    public function oneklikRegistration(
+        $oauth_token,
+        $device_id,
+        $cust_id_merchant,
+        $additional_info,
+        $merchant_logo_url
+    ) {
+        $corp_id = $this->settings['corp_id'];
+        $apikey = $this->settings['api_key'];
+        $secret = $this->settings['secret_key'];
+        $uriSign = "POST:/oneklik/registration";
+        $isoTime = self::generateIsoTime();
+
+        $headers = array();
+        $headers['Accept'] = 'application/json';
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
+        $headers['X-BCA-Timestamp'] = $isoTime;
+
+        $request_path = "oneklik/registration";
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+
+        $bodyData = array();
+        $bodyData['additional_info'] = strtolower(str_replace(' ', '', $additional_info));
+        $bodyData['cust_id_merchant'] = str_replace(' ', '', $cust_id_merchant);
+        $bodyData['device_id'] = $str_replace(' ', '', $device_id);
+        $bodyData['merchant_logo_url'] = str_replace(' ', '', $merchant_logo_url);
+
+        // Harus disort agar mudah kalkulasi HMAC
+        ksort($bodyData);
+
+        $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, $bodyData);
+
+        $headers['X-BCA-Signature'] = $authSignature;
+        $headers['ChannelID'] = '95221';
+        $headers['CredentialID'] = str_replace(' ', '', $corp_id);
+
+        \Unirest\Request::curlOpts(array(
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSLVERSION => 6,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
+        ));
+
+        // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
+        $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
+        $body = \Unirest\Request\Body::form($encoderData);
+        $response = \Unirest\Request::post($full_url, $headers, $body);
+
         return $response;
     }
 
@@ -842,15 +893,15 @@ class BcaHttp
 
     /**
      * User Registration.
-     * This service is used to register customer wallet. 
+     * This service is used to register customer wallet.
      * @param string $oauth_token nilai token yang telah didapatkan setelah login
-     *   Field Data Type Mandatory Description 
-     * @param $customerName String(80) Yes Customer Name 
-     * @param $dateOfBirth String(10) Yes Date of Birth (yyyy-MM-dd) 
-     * @param $primaryID String(80) Yes Unique ID per customer from merchant system (Email or Mobile number or Customer number) 
-     * @param $mobileNumber String(16) Yes Mobile number with country code or “0” prefixed, e.g. +6280000000000, 080000000000 
-     * @param $emailAddress String(80) No Email Address. 
-     * @param $customerNumber String(18) Yes Unique number generated by merchant for balance topup using BCA virtual account system 
+     *   Field Data Type Mandatory Description
+     * @param $customerName String(80) Yes Customer Name
+     * @param $dateOfBirth String(10) Yes Date of Birth (yyyy-MM-dd)
+     * @param $primaryID String(80) Yes Unique ID per customer from merchant system (Email or Mobile number or Customer number)
+     * @param $mobileNumber String(16) Yes Mobile number with country code or “0” prefixed, e.g. +6280000000000, 080000000000
+     * @param $emailAddress String(80) No Email Address.
+     * @param $customerNumber String(18) Yes Unique number generated by merchant for balance topup using BCA virtual account system
      * @param $idNumber String(16) Yes Customer identifier number (KTP)
      *
      * @return \Unirest\Response
@@ -869,26 +920,26 @@ class BcaHttp
         $apikey = $this->settings['api_key'];
         $secret = $this->settings['secret_key'];
         $uriSign = "POST:/ewallet/customers";
-        
+
         $isoTime = self::generateIsoTime();
-        $headers                    = array();
+        $headers = array();
         //$headers['Accept']          = 'application/json';
-        $headers['Content-Type']    = 'application/json';
-        $headers['Authorization']   = "Bearer $oauth_token";
-        $headers['X-BCA-Key']       = $apikey;
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
         $headers['X-BCA-Timestamp'] = $isoTime;
         $request_path = "ewallet/customers";
-        $domain       = $this->ddnDomain();
-        $full_url     = $domain . $request_path;
-        $bodyData     = array();
-        $bodyData['CustomerName']   = $customerName;//strtolower(str_replace(' ', '', $customerName));
-        $bodyData['DateOfBirth']    = strtolower(str_replace(' ', '', $dateOfBirth));
-        $bodyData['PrimaryID']      = strtolower(str_replace(' ', '', $primaryID));
-        $bodyData['MobileNumber']   = strtolower(str_replace(' ', '', $mobileNumber));
-        $bodyData['EmailAddress']   = strtolower(str_replace(' ', '', $emailAddress));
-        $bodyData['CompanyCode']    = strtolower(str_replace(' ', '', $companyCode));
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+        $bodyData = array();
+        $bodyData['CustomerName'] = $customerName; //strtolower(str_replace(' ', '', $customerName));
+        $bodyData['DateOfBirth'] = strtolower(str_replace(' ', '', $dateOfBirth));
+        $bodyData['PrimaryID'] = strtolower(str_replace(' ', '', $primaryID));
+        $bodyData['MobileNumber'] = strtolower(str_replace(' ', '', $mobileNumber));
+        $bodyData['EmailAddress'] = strtolower(str_replace(' ', '', $emailAddress));
+        $bodyData['CompanyCode'] = strtolower(str_replace(' ', '', $companyCode));
         $bodyData['CustomerNumber'] = strtolower(str_replace(' ', '', $customerNumber));
-        $bodyData['IDNumber']       = strtolower(str_replace(' ', '', $idNumber));
+        $bodyData['IDNumber'] = strtolower(str_replace(' ', '', $idNumber));
         // Harus disort agar mudah kalkulasi HMAC
         ksort($bodyData);
         $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, $bodyData);
@@ -897,76 +948,76 @@ class BcaHttp
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
         ));
         // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
         $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
-        $body     = \Unirest\Request\Body::form($encoderData);
+        $body = \Unirest\Request\Body::form($encoderData);
         $response = \Unirest\Request::post($full_url, $headers, $body);
         return $response;
     }
 
     /**
-     * User Inquiry 
-     * This service is used to show customer data and the amount of its balance. 
+     * User Inquiry
+     * This service is used to show customer data and the amount of its balance.
      * @param string $oauth_token nilai token yang telah didapatkan setelah login
-     * @param array $primary_id Unique ID per customer from merchant system (Email or Mobile number or Customer number) 
+     * @param array $primary_id Unique ID per customer from merchant system (Email or Mobile number or Customer number)
      *
      * @return \Unirest\Response
-     *   Field Data Type Description 
+     *   Field Data Type Description
      *   PrimaryID String(80) Unique ID per Customer
-     *   CustomerNumber String(80) Unique number generated by merchant for balance topup using BCA virtual account system 
-     *   CustomerName String(80) Customer Name 
-     *   MobileNumber String(80) Mobile number with country code or “0” prefixed, e.g. +6280000000000, 080000000000 
-     *   EmailAddress  String(80) Email Address 
-     *   DateOfBirth String(10) Date of Birth (yyyy-MM-dd) 
-     *   CurrencyCode String(3) Currency code, e.g. IDR 
-     *   Balance String(16) eWallet balance (Number, format:13.2). Maximum balance is decided by Business 
+     *   CustomerNumber String(80) Unique number generated by merchant for balance topup using BCA virtual account system
+     *   CustomerName String(80) Customer Name
+     *   MobileNumber String(80) Mobile number with country code or “0” prefixed, e.g. +6280000000000, 080000000000
+     *   EmailAddress  String(80) Email Address
+     *   DateOfBirth String(10) Date of Birth (yyyy-MM-dd)
+     *   CurrencyCode String(3) Currency code, e.g. IDR
+     *   Balance String(16) eWallet balance (Number, format:13.2). Maximum balance is decided by Business
      *   IDNumber  String(16) Customer identifier number (KTP)
      */
     public function userInquiry($oauth_token, $primary_id)
     {
         $corp_id = $this->settings['corp_id'];
-        $apikey  = $this->settings['api_key'];
-        $secret  = $this->settings['secret_key'];
-        
-        $uriSign       = "GET:/ewallet/customers/$corp_id/$primary_id";
-        $isoTime       = self::generateIsoTime();
+        $apikey = $this->settings['api_key'];
+        $secret = $this->settings['secret_key'];
+
+        $uriSign = "GET:/ewallet/customers/$corp_id/$primary_id";
+        $isoTime = self::generateIsoTime();
         $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, "");
-        $headers                    = array();
-        $headers['Accept']          = 'application/json';
-        $headers['Content-Type']    = 'application/json';
-        $headers['Authorization']   = "Bearer $oauth_token";
-        $headers['X-BCA-Key']       = $apikey;
+        $headers = array();
+        $headers['Accept'] = 'application/json';
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
         $headers['X-BCA-Timestamp'] = $isoTime;
         $headers['X-BCA-Signature'] = $authSignature;
         $request_path = "ewallet/customers/$corp_id/$primary_id";
-        $domain       = $this->ddnDomain();
-        $full_url     = $domain . $request_path;
-        
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+
         $data = array('grant_type' => 'client_credentials');
         \Unirest\Request::curlOpts(array(
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
         ));
-        $body     = \Unirest\Request\Body::form($data);
+        $body = \Unirest\Request\Body::form($data);
         $response = \Unirest\Request::get($full_url, $headers, $body);
         return $response;
     }
-    
+
     /**
      * User Update.
-     * This service is used to register customer wallet. 
+     * This service is used to register customer wallet.
      * @param string $oauth_token nilai token yang telah didapatkan setelah login
-     *   Field Data Type Mandatory Description 
-     * @param $primaryID String(80) Yes Unique ID per customer from merchant system (Email or Mobile number or Customer number) 
-     * @param $customerName String(80) No Customer Name 
-     * @param $dateOfBirth String(10) No Date of Birth (yyyy-MM-dd) 
-     * @param $mobileNumber String(16) No Mobile number with country code or “0” prefixed, e.g. +6280000000000, 080000000000 
-     * @param $emailAddress String(80) No Email Address. 
-     * @param $walletStatus String(18) No Status wallet (ACTIVE / BLOCKED / INACTIVE) 
+     *   Field Data Type Mandatory Description
+     * @param $primaryID String(80) Yes Unique ID per customer from merchant system (Email or Mobile number or Customer number)
+     * @param $customerName String(80) No Customer Name
+     * @param $dateOfBirth String(10) No Date of Birth (yyyy-MM-dd)
+     * @param $mobileNumber String(16) No Mobile number with country code or “0” prefixed, e.g. +6280000000000, 080000000000
+     * @param $emailAddress String(80) No Email Address.
+     * @param $walletStatus String(18) No Status wallet (ACTIVE / BLOCKED / INACTIVE)
      * @param $idNumber String(16) Yes Customer identifier number (KTP)
      *
      * @return \Unirest\Response
@@ -977,39 +1028,39 @@ class BcaHttp
         $updates_,
         $idNumber
     ) {
-    	  $defaults = array(
-          'customerName' => '',
-          'dateOfBirth' => '',
-          'mobileNumber' => '',
-          'emailAddress' => '',
-          'walletStatus' => ''
+        $defaults = array(
+            'customerName' => '',
+            'dateOfBirth' => '',
+            'mobileNumber' => '',
+            'emailAddress' => '',
+            'walletStatus' => '',
         );
         $param = array_merge($defaults, $updates_);
         $companyCode = $this->settings['corp_id'];
         $apikey = $this->settings['api_key'];
         $secret = $this->settings['secret_key'];
-        $uriSign = "PUT:/ewallet/customers/".$companyCode."/".$primaryID;
-        
+        $uriSign = "PUT:/ewallet/customers/" . $companyCode . "/" . $primaryID;
+
         $isoTime = self::generateIsoTime();
-        $headers                    = array();
-        $headers['Content-Type']    = 'application/json';
-        $headers['Authorization']   = "Bearer $oauth_token";
-        $headers['X-BCA-Key']       = $apikey;
+        $headers = array();
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
         $headers['X-BCA-Timestamp'] = $isoTime;
 
-        $request_path = "ewallet/customers/".$companyCode."/".$primaryID;
-        $domain       = $this->ddnDomain();
-        $full_url     = $domain . $request_path;
-        $bodyData     = array();
+        $request_path = "ewallet/customers/" . $companyCode . "/" . $primaryID;
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+        $bodyData = array();
 
-        if($param['customerName'] <> ''){$bodyData['CustomerName'] = $param['customerName'];}
-        if($param['dateOfBirth']  <> ''){$bodyData['DateOfBirth']  = $param['dateOfBirth'];}
-        if($param['mobileNumber'] <> ''){$bodyData['MobileNumber'] = $param['mobileNumber'];}
-        if($param['emailAddress'] <> ''){$bodyData['EmailAddress'] = $param['emailAddress'];}
-        if($param['walletStatus'] <> ''){$bodyData['WalletStatus'] = $param['walletStatus'];}
-        
+        if ($param['customerName'] != '') {$bodyData['CustomerName'] = $param['customerName'];}
+        if ($param['dateOfBirth'] != '') {$bodyData['DateOfBirth'] = $param['dateOfBirth'];}
+        if ($param['mobileNumber'] != '') {$bodyData['MobileNumber'] = $param['mobileNumber'];}
+        if ($param['emailAddress'] != '') {$bodyData['EmailAddress'] = $param['emailAddress'];}
+        if ($param['walletStatus'] != '') {$bodyData['WalletStatus'] = $param['walletStatus'];}
+
         $bodyData['IDNumber'] = strtolower(str_replace(' ', '', $idNumber));
-        
+
         // Harus disort agar mudah kalkulasi HMAC
         ksort($bodyData);
 
@@ -1020,13 +1071,13 @@ class BcaHttp
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
         ));
 
         // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
         $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
 
-        $body     = \Unirest\Request\Body::form($encoderData);
+        $body = \Unirest\Request\Body::form($encoderData);
         $response = \Unirest\Request::put($full_url, $headers, $body);
 
         return $response;
@@ -1034,13 +1085,13 @@ class BcaHttp
 
     /**
      * TopUp.
-     * This service is used to add funds to user e-wallet. Through the instruction of the e-wallet issuer. 
+     * This service is used to add funds to user e-wallet. Through the instruction of the e-wallet issuer.
      * @param string $oauth_token nilai token yang telah didapatkan setelah login
-     *   Field Data Type Mandatory Description 
-     * @param $primaryID String(80) Yes Unique ID per customer from merchant system (Email or Mobile number or Customer number) 
-     * @param $transactionID String(18) Yes Transaction ID generated by merchant 
+     *   Field Data Type Mandatory Description
+     * @param $primaryID String(80) Yes Unique ID per customer from merchant system (Email or Mobile number or Customer number)
+     * @param $transactionID String(18) Yes Transaction ID generated by merchant
      * @param $requestDate String(29) Yes Request Date of transaction (yyyyMM-ddTHH:mm:ss.sssZ)
-     * @param $amount String(16) Yes Amount of transaction (Number, format:13.2) 
+     * @param $amount String(16) Yes Amount of transaction (Number, format:13.2)
      * @param $currencyCode String(3) Currency (IDR) ifier number (KTP)
      *
      * @return \Unirest\Response
@@ -1057,25 +1108,25 @@ class BcaHttp
         $apikey = $this->settings['api_key'];
         $secret = $this->settings['secret_key'];
         $uriSign = "POST:/ewallet/topup";
-        
+
         $isoTime = self::generateIsoTime();
-        $headers                    = array();
-        $headers['Content-Type']    = 'application/json';
-        $headers['Authorization']   = "Bearer $oauth_token";
-        $headers['X-BCA-Key']       = $apikey;
+        $headers = array();
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
         $headers['X-BCA-Timestamp'] = $isoTime;
 
         $request_path = "ewallet/topup";
-        $domain       = $this->ddnDomain();
-        $full_url     = $domain . $request_path;
-        $bodyData     = array();
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+        $bodyData = array();
 
-        $bodyData['PrimaryID']       = strtolower(str_replace(' ', '', $primaryID));
-        $bodyData['TransactionID']   = str_replace(' ', '', $transactionID);
-        $bodyData['RequestDate']     = str_replace(' ', '', $requestDate);
-        $bodyData['CompanyCode']     = strtolower(str_replace(' ', '', $companyCode));
-        $bodyData['Amount']          = strtolower(str_replace(' ', '', $amount));
-        $bodyData['CurrencyCode']    = str_replace(' ', '', $currencyCode);
+        $bodyData['PrimaryID'] = strtolower(str_replace(' ', '', $primaryID));
+        $bodyData['TransactionID'] = str_replace(' ', '', $transactionID);
+        $bodyData['RequestDate'] = str_replace(' ', '', $requestDate);
+        $bodyData['CompanyCode'] = strtolower(str_replace(' ', '', $companyCode));
+        $bodyData['Amount'] = strtolower(str_replace(' ', '', $amount));
+        $bodyData['CurrencyCode'] = str_replace(' ', '', $currencyCode);
 
         // Harus disort agar mudah kalkulasi HMAC
         ksort($bodyData);
@@ -1087,121 +1138,121 @@ class BcaHttp
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
         ));
 
         // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
         $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
 
-        $body     = \Unirest\Request\Body::form($encoderData);
+        $body = \Unirest\Request\Body::form($encoderData);
         $response = \Unirest\Request::post($full_url, $headers, $body);
 
         return $response;
     }
 
     /**
-     * Topup Inquiry 
-     * This service is used to show customer data and the amount of its balance. 
+     * Topup Inquiry
+     * This service is used to show customer data and the amount of its balance.
      * @param string $oauth_token nilai token yang telah didapatkan setelah login
-     * @param array $primary_id Unique ID per customer from merchant system (Email or Mobile number or Customer number) 
+     * @param array $primary_id Unique ID per customer from merchant system (Email or Mobile number or Customer number)
      *
      * @return \Unirest\Response
-     *   Field Data Type Description 
+     *   Field Data Type Description
      *   PrimaryID String(80) Unique ID per Customer
-     * @param $transactionID String(18) Yes Transaction ID generated by merchant 
+     * @param $transactionID String(18) Yes Transaction ID generated by merchant
      * @param $requestDate String(29) Yes Request Date of transaction (yyyyMM-ddTHH:mm:ss.sssZ)
      */
     public function topUpInquiry(
-        $oauth_token, 
+        $oauth_token,
         $primaryID,
         $transactionID,
         $requestDate
     ) {
         $corp_id = $this->settings['corp_id'];
-        $apikey  = $this->settings['api_key'];
-        $secret  = $this->settings['secret_key'];
-        
-        $uriSign       = "GET:/ewallet/topup/$corp_id/$primaryID?RequestDate=$requestDate&TransactionID=$transactionID";
-        
-        $isoTime       = self::generateIsoTime();
+        $apikey = $this->settings['api_key'];
+        $secret = $this->settings['secret_key'];
+
+        $uriSign = "GET:/ewallet/topup/$corp_id/$primaryID?RequestDate=$requestDate&TransactionID=$transactionID";
+
+        $isoTime = self::generateIsoTime();
         $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, "");
-        $headers                    = array();
-        $headers['Accept']          = 'application/json';
-        $headers['Content-Type']    = 'application/json';
-        $headers['Authorization']   = "Bearer $oauth_token";
-        $headers['X-BCA-Key']       = $apikey;
+        $headers = array();
+        $headers['Accept'] = 'application/json';
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
         $headers['X-BCA-Timestamp'] = $isoTime;
         $headers['X-BCA-Signature'] = $authSignature;
         $request_path = "ewallet/topup/$corp_id/$primaryID?RequestDate=$requestDate&TransactionID=$transactionID";
-        $domain       = $this->ddnDomain();
-        $full_url     = $domain . $request_path;
-        
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+
         $data = array('grant_type' => 'client_credentials');
         \Unirest\Request::curlOpts(array(
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
         ));
-        $body     = \Unirest\Request\Body::form($data);
+        $body = \Unirest\Request\Body::form($data);
         $response = \Unirest\Request::get($full_url, $headers, $body);
         return $response;
     }
 
     /**
-     * Transactions Inquiry 
-     * This service is used to get the transaction list of a e-wallet user until 31 days behind. The maximum total of transactions returned is 10 . 
+     * Transactions Inquiry
+     * This service is used to get the transaction list of a e-wallet user until 31 days behind. The maximum total of transactions returned is 10 .
      * @param string $oauth_token nilai token yang telah didapatkan setelah login
-     * @param array $primary_id Unique ID per customer from merchant system (Email or Mobile number or Customer number) 
+     * @param array $primary_id Unique ID per customer from merchant system (Email or Mobile number or Customer number)
      *
      * @return \Unirest\Response
-     *   Field Data Type Description 
+     *   Field Data Type Description
      *   PrimaryID String(80) Unique ID per Customer
-     * @param $startDate String(10) Yes Start Date of the transaction that you wants to get (yyyyMM-dd)  
-     * @param $endDate String(10) Yes End Date of the transaction that you wants to get, format (yyyy-MM-dd) 
-     * @param $lastAccountStatementID  String(18) No Last AccountStatement ID provided to get the older transaction history than ‘this’ Transaction ID 
+     * @param $startDate String(10) Yes Start Date of the transaction that you wants to get (yyyyMM-dd)
+     * @param $endDate String(10) Yes End Date of the transaction that you wants to get, format (yyyy-MM-dd)
+     * @param $lastAccountStatementID  String(18) No Last AccountStatement ID provided to get the older transaction history than ‘this’ Transaction ID
      * (every request will display 10 transaction). If you do request for the first time, ignore this field
      */
     public function transactionsInquiry(
-        $oauth_token, 
+        $oauth_token,
         $primaryID,
         $startDate,
         $endDate,
         $lastAccountStatementID = ""
     ) {
         $corp_id = $this->settings['corp_id'];
-        $apikey  = $this->settings['api_key'];
-        $secret  = $this->settings['secret_key'];
-        
-        If($lastAccountStatementID == ""){
-          $uriSign       = "GET:/ewallet/transactions/$corp_id/$primaryID?EndDate=$endDate&StartDate=$startDate";
+        $apikey = $this->settings['api_key'];
+        $secret = $this->settings['secret_key'];
+
+        if ($lastAccountStatementID == "") {
+            $uriSign = "GET:/ewallet/transactions/$corp_id/$primaryID?EndDate=$endDate&StartDate=$startDate";
         } else {
-        	$uriSign       = "GET:/ewallet/transactions/$corp_id/$primaryID?EndDate=$endDate&LastAccountStatementID=$lastAccountStatementID&StartDate=$startDate";
+            $uriSign = "GET:/ewallet/transactions/$corp_id/$primaryID?EndDate=$endDate&LastAccountStatementID=$lastAccountStatementID&StartDate=$startDate";
         }
-        
-        $isoTime       = self::generateIsoTime();
+
+        $isoTime = self::generateIsoTime();
         $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, "");
-        $headers                    = array();
-        $headers['Accept']          = 'application/json';
-        $headers['Content-Type']    = 'application/json';
-        $headers['Authorization']   = "Bearer $oauth_token";
-        $headers['X-BCA-Key']       = $apikey;
+        $headers = array();
+        $headers['Accept'] = 'application/json';
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
         $headers['X-BCA-Timestamp'] = $isoTime;
         $headers['X-BCA-Signature'] = $authSignature;
 
-        $request_path = substr($uriSign,5);
-        $domain       = $this->ddnDomain();
-        $full_url     = $domain . $request_path;
-        
+        $request_path = substr($uriSign, 5);
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+
         $data = array('grant_type' => 'client_credentials');
         \Unirest\Request::curlOpts(array(
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
         ));
 
-        $body     = \Unirest\Request\Body::form($data);
+        $body = \Unirest\Request\Body::form($data);
         $response = \Unirest\Request::get($full_url, $headers, $body);
 
         return $response;
@@ -1209,13 +1260,13 @@ class BcaHttp
 
     /**
      * Transfer Company Account.
-     * This service is used to transfer from SAKUKU COBRANDING to company account. 
+     * This service is used to transfer from SAKUKU COBRANDING to company account.
      * @param string $oauth_token nilai token yang telah didapatkan setelah login
-     *   Field Data Type Mandatory Description 
-     * @param $primaryID String(80) Yes Unique ID per customer from merchant system (Email or Mobile number or Customer number) 
-     * @param $transactionID String(18) Yes Transaction ID generated by merchant 
+     *   Field Data Type Mandatory Description
+     * @param $primaryID String(80) Yes Unique ID per customer from merchant system (Email or Mobile number or Customer number)
+     * @param $transactionID String(18) Yes Transaction ID generated by merchant
      * @param $requestDate String(29) Yes Request Date of transaction (yyyyMM-ddTHH:mm:ss.sssZ)
-     * @param $amount String(16) Yes Amount of transaction (Number, format:13.2) 
+     * @param $amount String(16) Yes Amount of transaction (Number, format:13.2)
      * @param $currencyCode String(3) Currency (IDR) ifier number (KTP)
      *
      * @return \Unirest\Response
@@ -1232,23 +1283,23 @@ class BcaHttp
         $apikey = $this->settings['api_key'];
         $secret = $this->settings['secret_key'];
         $uriSign = "POST:/ewallet/transfers";
-        
+
         $isoTime = self::generateIsoTime();
-        $headers                    = array();
-        $headers['Content-Type']    = 'application/json';
-        $headers['Authorization']   = "Bearer $oauth_token";
-        $headers['X-BCA-Key']       = $apikey;
+        $headers = array();
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
         $headers['X-BCA-Timestamp'] = $isoTime;
         $request_path = "ewallet/transfers";
-        $domain       = $this->ddnDomain();
-        $full_url     = $domain . $request_path;
-        $bodyData     = array();
-        $bodyData['PrimaryID']       = strtolower(str_replace(' ', '', $primaryID));
-        $bodyData['TransactionID']   = str_replace(' ', '', $transactionID);
-        $bodyData['RequestDate']     = str_replace(' ', '', $requestDate);
-        $bodyData['CompanyCode']     = strtolower(str_replace(' ', '', $companyCode));
-        $bodyData['Amount']          = strtolower(str_replace(' ', '', $amount));
-        $bodyData['CurrencyCode']    = str_replace(' ', '', $currencyCode);
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+        $bodyData = array();
+        $bodyData['PrimaryID'] = strtolower(str_replace(' ', '', $primaryID));
+        $bodyData['TransactionID'] = str_replace(' ', '', $transactionID);
+        $bodyData['RequestDate'] = str_replace(' ', '', $requestDate);
+        $bodyData['CompanyCode'] = strtolower(str_replace(' ', '', $companyCode));
+        $bodyData['Amount'] = strtolower(str_replace(' ', '', $amount));
+        $bodyData['CurrencyCode'] = str_replace(' ', '', $currencyCode);
 
         // Harus disort agar mudah kalkulasi HMAC
         ksort($bodyData);
@@ -1259,61 +1310,60 @@ class BcaHttp
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
         ));
 
         // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
         $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
 
-        $body     = \Unirest\Request\Body::form($encoderData);
+        $body = \Unirest\Request\Body::form($encoderData);
         $response = \Unirest\Request::post($full_url, $headers, $body);
         return $response;
     }
 
     /**
-     * Transfers Inquiry 
-     * This service is used to inquiry transfer company account. 
+     * Transfers Inquiry
+     * This service is used to inquiry transfer company account.
      * @param string $oauth_token nilai token yang telah didapatkan setelah login
-     * @param array $primary_id Unique ID per customer from merchant system (Email or Mobile number or Customer number) 
+     * @param array $primary_id Unique ID per customer from merchant system (Email or Mobile number or Customer number)
      *
      * @return \Unirest\Response
-     *   Field Data Type Description 
+     *   Field Data Type Description
      *   PrimaryID String(80) Unique ID per Customer
-     * @param $transactionID String(18) Yes Transaction ID generated by merchant 
-     * @param $requestDate String(29) Yes Date of the transaction (yyyy-MMdd) 
+     * @param $transactionID String(18) Yes Transaction ID generated by merchant
+     * @param $requestDate String(29) Yes Date of the transaction (yyyy-MMdd)
      */
-    public function transfersInquiry($oauth_token, 
-    $primaryID,
-    $transactionID,
-    $requestDate)
-    {
+    public function transfersInquiry($oauth_token,
+        $primaryID,
+        $transactionID,
+        $requestDate) {
         $corp_id = $this->settings['corp_id'];
-        $apikey  = $this->settings['api_key'];
-        $secret  = $this->settings['secret_key'];
-        
-        $uriSign       = "GET:/ewallet/transfers/$corp_id/$primaryID?RequestDate=$requestDate&TransactionID=$transactionID";
-        
-        $isoTime       = self::generateIsoTime();
+        $apikey = $this->settings['api_key'];
+        $secret = $this->settings['secret_key'];
+
+        $uriSign = "GET:/ewallet/transfers/$corp_id/$primaryID?RequestDate=$requestDate&TransactionID=$transactionID";
+
+        $isoTime = self::generateIsoTime();
         $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, "");
-        $headers                    = array();
-        $headers['Accept']          = 'application/json';
-        $headers['Content-Type']    = 'application/json';
-        $headers['Authorization']   = "Bearer $oauth_token";
-        $headers['X-BCA-Key']       = $apikey;
+        $headers = array();
+        $headers['Accept'] = 'application/json';
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
         $headers['X-BCA-Timestamp'] = $isoTime;
         $headers['X-BCA-Signature'] = $authSignature;
         $request_path = "ewallet/transfers/$corp_id/$primaryID?RequestDate=$requestDate&TransactionID=$transactionID";
-        $domain       = $this->ddnDomain();
-        $full_url     = $domain . $request_path;
-        
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+
         $data = array('grant_type' => 'client_credentials');
         \Unirest\Request::curlOpts(array(
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
         ));
-        $body     = \Unirest\Request\Body::form($data);
+        $body = \Unirest\Request\Body::form($data);
         $response = \Unirest\Request::get($full_url, $headers, $body);
         return $response;
     }
