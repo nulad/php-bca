@@ -588,7 +588,7 @@ class BcaHttp
         $bodyData = array();
         $bodyData['additional_info'] = strtolower(str_replace(' ', '', $additional_info));
         $bodyData['cust_id_merchant'] = str_replace(' ', '', $cust_id_merchant);
-        $bodyData['device_id'] = $str_replace(' ', '', $device_id);
+        $bodyData['device_id'] = str_replace(' ', '', $device_id);
         $bodyData['merchant_logo_url'] = str_replace(' ', '', $merchant_logo_url);
 
         // Harus disort agar mudah kalkulasi HMAC
