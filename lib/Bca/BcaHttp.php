@@ -600,7 +600,7 @@ class BcaHttp
         $headers['channel-id'] = '95221';
         $headers['credential-id'] = str_replace(' ', '', $corp_id);
 
-        \Unirest\Request::curlOpts(array(
+        Request::curlOpts(array(
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
@@ -609,8 +609,8 @@ class BcaHttp
 
         // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
         $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
-        $body = \Unirest\Request\Body::form($encoderData);
-        $response = \Unirest\Request::post($full_url, $headers, $body);
+        $body = Body::form($encoderData);
+        $response = Request::post($full_url, $headers, $body);
 
         return $response;
     }
@@ -642,7 +642,7 @@ class BcaHttp
         $headers['channel-id'] = '95221';
         $headers['credential-id'] = str_replace(' ', '', $corp_id);
 
-        \Unirest\Request::curlOpts(array(
+        Request::curlOpts(array(
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSLVERSION => 6,
             CURLOPT_SSL_VERIFYPEER => false,
@@ -652,8 +652,8 @@ class BcaHttp
         // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
         $data = array('grant_type' => 'client_credentials');
         $body = Body::form($data);
-        $response = \Unirest\Request::Get($full_url, $headers, $body);
-        echo "METHOD: POST\r\nURL:".$full_url."\r\nHEADERS: ";print_r($headers);print("\r\nBODY: ".print_r($body, true));
+        $response = Request::Get($full_url, $headers, $body);
+        // echo "METHOD: POST\r\nURL:".$full_url."\r\nHEADERS: ";print_r($headers);print("\r\nBODY: ".print_r($body, true));
 
         return $response;
     }
