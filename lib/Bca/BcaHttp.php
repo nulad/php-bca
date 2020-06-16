@@ -597,8 +597,8 @@ class BcaHttp
         $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, $bodyData);
 
         $headers['X-BCA-Signature'] = $authSignature;
-        $headers['ChannelID'] = '95221';
-        $headers['CredentialID'] = str_replace(' ', '', $corp_id);
+        $headers['channel-id'] = '95221';
+        $headers['credential-id'] = str_replace(' ', '', $corp_id);
 
         \Unirest\Request::curlOpts(array(
             CURLOPT_SSL_VERIFYHOST => 0,
@@ -611,6 +611,49 @@ class BcaHttp
         $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
         $body = \Unirest\Request\Body::form($encoderData);
         $response = \Unirest\Request::post($full_url, $headers, $body);
+
+        return $response;
+    }
+
+    public function oneklikGetCustomer(
+        $oauth_token,
+        $cust_id_merchant
+    ) {
+        $corp_id = $this->settings['corp_id'];
+        $apikey = $this->settings['api_key'];
+        $secret = $this->settings['secret_key'];
+        $uriSign = "GET:/oneklik/credentials/customers/" . $cust_id_merchant;
+        $isoTime = self::generateIsoTime();
+
+        $headers = array();
+        $headers['Accept'] = 'application/json';
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
+        $headers['X-BCA-Timestamp'] = $isoTime;
+
+        $request_path = "oneklik/credentials/customers/" . $cust_id_merchant;
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+
+        $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, null);
+
+        $headers['X-BCA-Signature'] = $authSignature;
+        $headers['channel-id'] = '95221';
+        $headers['credential-id'] = str_replace(' ', '', $corp_id);
+
+        \Unirest\Request::curlOpts(array(
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSLVERSION => 6,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
+        ));
+
+        // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
+        $data = array('grant_type' => 'client_credentials');
+        $body = Body::form($data);
+        $response = \Unirest\Request::Get($full_url, $headers, $body);
+        echo "METHOD: POST\r\nURL:".$full_url."\r\nHEADERS: ";print_r($headers);print("\r\nBODY: ".print_r($body, true));
 
         return $response;
     }
