@@ -778,8 +778,6 @@ class BcaHttp
     public function oneklikRequestOTP(
         $oauth_token,
         $transaction_id,
-        $transaction_type,
-        $transaction_time,
         $customer_id_merchant,
         $bill_amount,
         $phone_id,
@@ -804,8 +802,8 @@ class BcaHttp
 
         $bodyData = array();
         $bodyData['transaction_id'] = strtolower(str_replace(' ', '', $transaction_id));
-        $bodyData['transaction_type'] = str_replace(' ', '', $transaction_type);
-        $bodyData['transaction_time'] = str_replace(' ', '', $transaction_time);
+        $bodyData['transaction_type'] = 'transaction';
+        $bodyData['transaction_time'] = $isoTime;
         $bodyData['customer_id_merchant'] = str_replace(' ', '', $customer_id_merchant);
         $bodyData['bill_amount'] = str_replace(' ', '', $bill_amount);
         $bodyData['merchant_id'] = str_replace(' ', '', $corp_id);
