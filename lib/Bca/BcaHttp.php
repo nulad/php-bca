@@ -611,11 +611,13 @@ class BcaHttp
         $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
         $body = Body::form($encoderData);
         $response = Request::post($full_url, $headers, $body);
+        error_log( "METHOD: POST\r\nURL:".$full_url."\r\nHEADERS: " . json_encode($headers, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nBODY: " . json_encode($body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+        error_log(json_encode($response->body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
 
         return $response;
     }
 
-    public function oneklikGetCustomer(
+    public function oneklikGetAccount(
         $oauth_token,
         $cust_id_merchant
     ) {
@@ -653,7 +655,76 @@ class BcaHttp
         $data = array('grant_type' => 'client_credentials');
         $body = Body::form($data);
         $response = Request::Get($full_url, $headers, $body);
-        // echo "METHOD: POST\r\nURL:".$full_url."\r\nHEADERS: ";print_r($headers);print("\r\nBODY: ".print_r($body, true));
+        
+        error_log( "METHOD: GET\r\nURL:".$full_url."\r\nHEADERS: " . json_encode($headers, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nBODY: " . json_encode($body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+        error_log(json_encode($response->body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+
+        return $response;
+    }
+
+    public function oneklikPayment(
+        $oauth_token,
+        $client_device_info,
+        $admin_fee,
+        $bill_amount,
+        $customer_id_merchant,
+        $customer_name,
+        $description,
+        $transaction_id,
+        $xco_id
+    ) {
+        $corp_id = $this->settings['corp_id'];
+        $apikey = $this->settings['api_key'];
+        $secret = $this->settings['secret_key'];
+        $uriSign = "POST:/oneklik/payments";
+        $isoTime = self::generateIsoTime();
+
+        $headers = array();
+        $headers['Accept'] = 'application/json';
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
+        $headers['X-BCA-Timestamp'] = $isoTime;
+
+        $request_path = "oneklik/payments";
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+
+        $bodyData = array();
+        $bodyData['admin_fee'] = strtolower(str_replace(' ', '', $admin_fee));
+        $bodyData['bill_amount'] = str_replace(' ', '', $bill_amount);
+        $bodyData['customer_id_merchant'] = str_replace(' ', '', $customer_id_merchant);
+        $bodyData['customer_name'] = str_replace(' ', '', $customer_name);
+        $bodyData['description'] = str_replace(' ', '', $description);
+        $bodyData['merchant_id'] = str_replace(' ', '', $corp_id);
+        $bodyData['payment_type'] = 'full';
+        $bodyData['transaction_id'] = str_replace(' ', '', $transaction_id);
+        $bodyData['transaction_time'] = $isoTime;
+        $bodyData['xco_id'] = str_replace(' ', '', $xco_id);
+
+        // Harus disort agar mudah kalkulasi HMAC
+        ksort($bodyData);
+
+        $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, $bodyData);
+
+        $headers['X-BCA-Signature'] = $authSignature;
+        $headers['x-client-deviceinfo'] = $client_device_info;
+        $headers['channel-id'] = '95221';
+        $headers['credential-id'] = str_replace(' ', '', $corp_id);
+
+        Request::curlOpts(array(
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSLVERSION => 6,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
+        ));
+
+        // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
+        $encoderData = json_encode($bodyData, JSON_UNESCAPED_SLASHES);
+        $body = Body::form($encoderData);
+        $response = Request::post($full_url, $headers, $body);
+        error_log( "METHOD: POST\r\nURL:".$full_url."\r\nHEADERS: " . json_encode($headers, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nBODY: " . json_encode($body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+        error_log(json_encode($response->body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
 
         return $response;
     }
