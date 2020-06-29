@@ -307,6 +307,7 @@ class bcaConstructorTest extends PHPUnit_Framework_TestCase
         $response = $bca->httpAuth();
         $this->assertEquals($response->code, 400);
     }
+    
 
     /**
      * Testing Fund Transfer.
@@ -353,6 +354,67 @@ class bcaConstructorTest extends PHPUnit_Framework_TestCase
                 'Testing Saja Ko',
                 'Online Saja Ko',
                 '00000001'
+            );
+        } catch (\Unirest\Exception $ex) {
+            $this->assertNotEquals($ex->getMessage(), 'Failed to connect to abcdefgh.com');
+        }
+    }
+
+    /**
+     * Testing Domestic Transfer.
+     */
+    public function testDomesticTransfer()
+    {
+        $options = array();
+        $bca = new \Bca\BcaHttp('corpid', '1234567-1234-1234-1345-123456789123', '1234567-1234-1234-1345-123456789123', '1234567-1234-1234-1345-123456789123', '1234567-1234-1234-1345-123456789123', $options);
+
+        $token = "o7d8qCgfsHwRneFGTHdQsFcS5Obmd26O10iBFRi50Ve8Yb06Ju5xx";
+
+        $response = $bca->domesticTransfers(
+            $token,
+            '50000.00',
+            '0201245680',
+            '0201245681',
+            'BNIAIDJA',
+            '1',
+            '1',
+            'Test Saja Ko',
+            '12345/PO/2017',
+            'Testing Saja Ko',
+            'Online Saja Ko',
+            '00000001',
+            'LLG'
+        );
+
+        $this->assertEquals($response->code, 400);
+    }
+
+    /**
+     * Testing Fund Transfer Menggunakan domain yang salah.
+     */
+    public function testDomesticTransfer2()
+    {
+        $options = array();
+        $options['host'] = 'abcdefgh.com';
+        $bca = new \Bca\BcaHttp('corpid', '1234567-1234-1234-1345-123456789123', '1234567-1234-1234-1345-123456789123', '1234567-1234-1234-1345-123456789123', '1234567-1234-1234-1345-123456789123', $options);
+
+        $token = "o7d8qCgfsHwRneFGTHdQsFcS5Obmd26O10iBFRi50Ve8Yb06Ju5xx";
+
+        try {
+            $response = $bca->domesticTransfers(
+                $token,
+                '50000.00',
+                '0201245680',
+                '0201245681',
+                'BNIAIDJA',
+                '1',
+                '1',
+                'Test Saja Ko',
+                '12345/PO/2017',
+                'Testing Saja Ko',
+                'Online Saja Ko',
+                '00000001',
+                'LLG'
             );
         } catch (\Unirest\Exception $ex) {
             $this->assertNotEquals($ex->getMessage(), 'Failed to connect to abcdefgh.com');
