@@ -676,7 +676,9 @@ class BcaHttp
         }
         ksort($params);
 
-        $delete_query_string = self::arrayImplode('=', '&', $params);
+        if (!empty($params)) {
+            $delete_query_string = self::arrayImplode('=', '&', $params);
+        }
 
         $corp_id = $this->settings['corp_id'];
         $apikey = $this->settings['api_key'];
