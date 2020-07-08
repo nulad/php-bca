@@ -661,6 +661,69 @@ class BcaHttp
         return $response;
     }
 
+    public function oneklikDeleteAccount(
+        $oauth_token,
+        $xco_id,
+        $updated_by,
+        $phone_number
+    ) {
+        $params = array();
+        if (!empty($updated_by)) {
+            $params['updated-by'] = $updated_by;
+        }
+        if (!empty($phone_number)) {
+            $params['phone-number'] = $phone_number;
+        }
+        ksort($params);
+
+        $delete_query_string = self::arrayImplode('=', '&', $params);
+
+        $corp_id = $this->settings['corp_id'];
+        $apikey = $this->settings['api_key'];
+        $secret = $this->settings['secret_key'];
+        $uriSign = `DELETE:/oneklik/credentials/` . $xco_id;
+        if (!empty($delete_query_string)) {
+            $uriSign = $uriSign . '?' . $delete_query_string;
+        }
+        $isoTime = self::generateIsoTime();
+
+        $headers = array();
+        $headers['Accept'] = 'application/json';
+        $headers['Content-Type'] = 'application/json';
+        $headers['Authorization'] = "Bearer $oauth_token";
+        $headers['X-BCA-Key'] = $apikey;
+        $headers['X-BCA-Timestamp'] = $isoTime;
+
+        $request_path = "oneklik/credentials/" . $xco_id;
+        if (!empty($delete_query_string)) {
+            $request_path = $request_path . '?' . $delete_query_string;
+        }
+        $domain = $this->ddnDomain();
+        $full_url = $domain . $request_path;
+
+        $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, null);
+
+        $headers['X-BCA-Signature'] = $authSignature;
+        $headers['channel-id'] = '95221';
+        $headers['credential-id'] = str_replace(' ', '', $corp_id);
+
+        Request::curlOpts(array(
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSLVERSION => 6,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT => $this->settings['timeout'] !== 30 ? $this->settings['timeout'] : 30,
+        ));
+
+        // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
+        $data = array('grant_type' => 'client_credentials');
+        $body = Body::form($data);
+        $response = Request::Get($full_url, $headers, $body);
+        
+        error_log("METHOD: DELETE\r\nURL:".$full_url."\r\nHEADERS: " . json_encode($headers, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nBODY: " . json_encode($data, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nRESPONSE: " . json_encode($response->body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+
+        return $response;
+    }
+
     public function oneklikPayment(
         $oauth_token,
         $client_device_info,
