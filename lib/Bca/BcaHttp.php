@@ -717,11 +717,9 @@ class BcaHttp
         ));
 
         // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
-        $data = array('grant_type' => 'client_credentials');
-        $body = Body::form($data);
-        $response = Request::delete($full_url, $headers, $body);
+        $response = Request::delete($full_url, $headers);
         
-        error_log("METHOD: DELETE\r\nURL:".$full_url."\r\nHEADERS: " . json_encode($headers, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nBODY: " . json_encode($data, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nRESPONSE: " . json_encode($response->body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+        error_log("METHOD: DELETE\r\nURL:".$full_url."\r\nHEADERS: " . json_encode($headers, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nRESPONSE: " . json_encode($response->body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
 
         return $response;
     }
