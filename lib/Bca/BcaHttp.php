@@ -683,7 +683,7 @@ class BcaHttp
         $corp_id = $this->settings['corp_id'];
         $apikey = $this->settings['api_key'];
         $secret = $this->settings['secret_key'];
-        $uriSign = `DELETE:/oneklik/credentials/` . $xco_id;
+        $uriSign = "DELETE:/oneklik/credentials/" . $xco_id;
         if (!empty($delete_query_string)) {
             $uriSign = $uriSign . '?' . $delete_query_string;
         }
@@ -719,7 +719,7 @@ class BcaHttp
         // Supaya jgn strip "ReferenceID" "/" jadi "/\" karena HMAC akan menjadi tidak cocok
         $data = array('grant_type' => 'client_credentials');
         $body = Body::form($data);
-        $response = Request::Get($full_url, $headers, $body);
+        $response = Request::delete($full_url, $headers, $body);
         
         error_log("METHOD: DELETE\r\nURL:".$full_url."\r\nHEADERS: " . json_encode($headers, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nBODY: " . json_encode($data, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) . "\r\nRESPONSE: " . json_encode($response->body, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
 
