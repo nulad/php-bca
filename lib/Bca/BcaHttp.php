@@ -851,7 +851,7 @@ class BcaHttp
         $corp_id = $this->settings['corp_id'];
         $apikey = $this->settings['api_key'];
         $secret = $this->settings['secret_key'];
-        $uriSign = "GET:/oneklik/payments/otp/generator";
+        $uriSign = "POST:/oneklik/payments/otp/generator";
         $isoTime = self::generateIsoTime();
 
         $headers = array();
@@ -866,9 +866,9 @@ class BcaHttp
         $full_url = $domain . $request_path;
 
         $bodyData = array();
-        $bodyData['transaction_id'] = strtolower(str_replace(' ', '', $transaction_id));
+        $bodyData['transaction_id'] = str_replace(' ', '', $transaction_id);
         $bodyData['transaction_type'] = 'transaction';
-        $bodyData['transaction_time'] = strtolower(str_replace(' ', '', $transaction_time));
+        $bodyData['transaction_time'] = str_replace(' ', '', $transaction_time);
         $bodyData['customer_id_merchant'] = str_replace(' ', '', $customer_id_merchant);
         $bodyData['bill_amount'] = str_replace(' ', '', $bill_amount);
         $bodyData['merchant_id'] = str_replace(' ', '', $corp_id);
@@ -881,7 +881,6 @@ class BcaHttp
         $authSignature = self::generateSign($uriSign, $oauth_token, $secret, $isoTime, $bodyData);
 
         $headers['X-BCA-Signature'] = $authSignature;
-        $headers['x-client-deviceinfo'] = $client_device_info;
         $headers['channel-id'] = '95221';
         $headers['credential-id'] = str_replace(' ', '', $corp_id);
 
